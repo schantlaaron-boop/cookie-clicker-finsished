@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cookie Click Ahhh</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #a0e7e5;
+      font-family: Arial;
+      overflow: hidden;
+    }
+
+    #cookie {
+      width: 160px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    #cookie.click {
+      transform: scale(1.15) rotate(-5deg);
+    }
+
+    #score {
+      margin: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #743e00;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 10px;
+      background: #ffb347;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    button:active {
+      transform: scale(0.9);
+    }
+
+    .float {
+      position: absolute;
+      font-weight: bold;
+      color: #743e00;
+      pointer-events: none;
+      animation: fly 1s forwards;
+    }
+
+    @keyframes fly {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0; transform: translateY(-50px); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Cookie Click Ahhh</h1>
+
+<img src="ur,pin_large_front,square,600x600.jpg" id="cookie">
+
+<div id="score"></div>
+
+<button id="multiBtn" onclick="buyMultiplier()"></button>
+<button id="autoBtn" onclick="buyAutoClicker()"></button>
+<button id="speedBtn" onclick="buySpeed()">Auto Speed Upgrade</button>
+<button onclick="resetGame()">Reset</button>
+
+<script>
+  // Speichern
+  let cookies     = Number(localStorage.cookies) || 0;
+  let multiplier  = Number(localStorage.multiplier) || 1;
+  let autoClicker = Number(localStorage.autoClicker) || 0;
+
+  let multiPrice = Number(localStorage.multiPrice) || 50;
+  let autoPrice  = Number(localStorage.autoPrice) || 100;
+  let speedPrice = Number(localStorage.speedPrice) || 200;
+
+  let autoSpeed = Number(localStorage.autoSpeed) || 1000; // Intervall in milli seconds
+
+  const scoreEl = document.getElementById("score");
+  const cookie  = document.getElementById("cookie");
+  const multiBtn = document.getElementById("multiBtn");
+  const autoBtn  = document.getElementById("autoBtn");
+  const speedBtn = document.getElementById("speedBtn");
+
+  let autoInterval;
+
+  function save() {
+    localStorage.cookies = cookies;
+    localStorage.multiplier = multiplier;
+    localStorage.autoClicker = autoClicker;
+    localStorage.multiPrice = multiPrice;
+    localStorage.autoPrice = autoPrice;
+    localStorage.speedPrice = speedPrice;
+    localStorage.autoSpeed = autoSpeed;
+  }
+
+  function updateUI() {
+    scoreEl.textContent =
+      `Cookies: ${cookies} | Multi: ${multiplier} | Auto: ${autoClicker}`;
+
+    multiBtn.textContent = `Multiplier (${multiplier}) – Kosten: ${multiPrice}`;
+    autoBtn.textContent  = `Auto Clicker (${autoClicker}) – Kosten: ${autoPrice}`;
+    speedBtn.textContent = `Auto Speed Upgrade – Kosten: ${speedPrice}`;
+  }
+
+  // Klick
+  cookie.onclick = (e) => {
+    cookies += multiplier;
+    updateUI();
+    save();
+
+    cookie.classList.add("click");
+    setTimeout(() => cookie.classList.remove("click"), 100);
+
+    const text = document.createElement("div");
+    text.className = "float";
+    text.textContent = "+" + multiplier;
+    text.style.left = e.pageX + "px";
+    text.style.top  = e.pageY + "px";
+    document.body.appendChild(text);
+    setTimeout(() => text.remove(), 1000);
+  };
+
+  // Auto Clicker
+  function startAutoClick() {
+    if(autoInterval) clearInterval(autoInterval);
+    autoInterval = setInterval(() => {
+      if(autoClicker > 0) {
+        cookies += autoClicker * multiplier;
+        updateUI();
+        save();
+      }
+    }, autoSpeed);
+  }
+
+  startAutoClick();
+
+  // Shop
+  function buyMultiplier() {
+    if(cookies < multiPrice) return;
+    cookies -= multiPrice;
+    multiplier++;
+    multiPrice = Math.floor(multiPrice * 1.5);
+    updateUI();
+    save();
+  }
+
+  function buyAutoClicker() {
+    if(cookies < autoPrice) return;
+    cookies -= autoPrice;
+    autoClicker++;
+    autoPrice = Math.floor(autoPrice * 1.5);
+    updateUI();
+    save();
+    startAutoClick();
+  }
+
+  function buySpeed() {
+    if(cookies < speedPrice || autoClicker == 0) return;
+    cookies -= speedPrice;
+    autoSpeed = Math.floor(autoSpeed * 0.8); // sped upgrade
+    speedPrice = Math.floor(speedPrice * 1.5);
+    updateUI();
+    save();
+    startAutoClick();
+  }
+
+  function resetGame() {
+    localStorage.clear();
+    location.reload();
+  }
+
+  updateUI();
+</script>
+
+</body>
+</html>
